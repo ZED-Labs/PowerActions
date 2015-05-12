@@ -1,0 +1,22 @@
+<#
+.MYNGC_REPORT
+.LABEL
+Get host uuid
+.DESCRIPTION
+Get host uuid.
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Folder[]]
+   $vParam
+);
+$report = @()
+$Esxhosts=Get-VMHost -Location $vParam
+Foreach ($esxhost in $Esxhosts){
+    $esxcli = Get-EsxCli -vmhost $esxhost
+  $row = "" | select  Esxhost, UUID
+  $row.Esxhost = $esxhost
+  $row.UUID = $esxcli.system.uuid.get()
+$report += $row }
+$report
