@@ -1,0 +1,30 @@
+<#
+.MYNGC_REPORT
+.LABEL
+Remove portgroup from cluster
+.DESCRIPTION
+Remove a single portgroup across all hosts in a cluster.
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Cluster]
+   $vParam,
+   [Parameter(Mandatory=$true)]
+   $vSwitch,
+   [Parameter(Mandatory=$true)]
+   $Portgroup_Name
+);
+$report = @()
+$Esxhosts=Get-VMHost -Location $vParam
+Foreach ($esxhost in $Esxhosts){
+    $vsw = Get-VirtualSwitch -VMHost $esxhost -Name $vSwitch
+    $portgroup = Get-VirtualPortGroup -VirtualSwitch $vSwitch -Name $Portgroup_Name
+    $pg = Remove-VirtualPortGroup -VirtualPortGroup $Portgroup -Confirm:$False          
+    $row = "" | Select Host, vSwitch, Portgroup, Results
+    $row.Host = $esxhost
+    $row.vSwitch = $vSwitch
+    $row.Portgroup = $Portgroup_Name
+    $row.Results = "Command issued."
+    $report += $row }
+ $report
