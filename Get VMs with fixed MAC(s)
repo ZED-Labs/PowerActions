@@ -1,0 +1,14 @@
+<#
+.MYNGC_REPORT
+.LABEL
+Get VMs with fixed MAC(s)
+.DESCRIPTION
+Locate any VM with a fixed MAC address.
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Folder[]]
+   $vParam
+);
+Get-VM -Location $vParam | Where-Object {($_ | Get-NetworkAdapter).ExtensionData.AddressType -eq "manual"} | Select-Object -Property Name, PowerState, @{"Name"="MAC";"Expression"={($_ | Get-NetworkAdapter).MacAddress}}
