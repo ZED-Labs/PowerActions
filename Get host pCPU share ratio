@@ -1,0 +1,29 @@
+<#
+.MYNGC_REPORT
+.LABEL
+Get host pCPU share ratio
+.DESCRIPTION
+Calculate host pCPU to vCPU share ratio.
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Folder[]]
+   $vParam
+);
+$report = @()
+$Esxhosts=Get-VMHost -Location $vParam
+Foreach ($esxhost in $Esxhosts){
+$vcpus=0
+$ratio=$null
+$hostthreads=$esxhost.extensiondata.hardware.cpuinfo.numcputhreads
+$esxhost | get-vm | Where-Object {$_.PowerState -eq "PoweredOn"} | ForEach {$vcpus+=$_.numcpu}
+if ($vcpus -ne "0") {$ratio= "$("{0:N2}" -f ($vcpus/$hostthreads))" + ":1"}
+$row= New-Object psobject
+$row| Add-Member -MemberType Noteproperty "Hostname" -value $esxhost.name
+$row| Add-Member -MemberType Noteproperty "PhysicalThreads" -Value $Hostthreads
+$row| Add-Member -MemberType Noteproperty "vCPUs" -Value $vcpus
+$row| Add-Member -MemberType Noteproperty "Ratio" -Value $ratio
+$report += $row
+    }
+$report
