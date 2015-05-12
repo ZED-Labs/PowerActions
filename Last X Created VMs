@@ -1,0 +1,12 @@
+<#
+.MYNGC_REPORT
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Folder[]]
+   $vParam,
+   [Parameter(Mandatory=$true)]
+   $LastX_Qty
+);
+Get-VIEvent -maxsamples 10000 |where {$_.Gettype().Name-eq "VmCreatedEvent" -or $_.Gettype().Name-eq "VmBeingClonedEvent" -or $_.Gettype().Name-eq "VmBeingDeployedEvent"} |Sort CreatedTime -Descending |Select CreatedTime, UserName,FullformattedMessage -First $LastX_Qty
