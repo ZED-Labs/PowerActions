@@ -1,0 +1,32 @@
+<#
+.MYNGC_REPORT
+.LABEL
+Create portgroup across cluster
+.DESCRIPTION
+Create a single portgroup across all hosts in a cluster.
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Cluster]
+   $vParam,
+   [Parameter(Mandatory=$true)]
+   $vSwitch,
+   [Parameter(Mandatory=$true)]
+   $Portgroup_Name,
+   [Parameter(Mandatory=$true)]
+   $VLAN
+);
+$report = @()
+$Esxhosts=Get-VMHost -Location $vParam
+Foreach ($esxhost in $Esxhosts){
+    $vsw = Get-VirtualSwitch -VMHost $esxhost -Name $vSwitch
+    $pg = New-VirtualPortGroup -VirtualSwitch $vsw -vLanID $VLAN -Name $Portgroup_Name
+    Select Name,VirtualSwitch,VLanID
+    $row = "" | Select Host, vSwitch, Portgroup, VLAN
+    $row.Host = $esxhost
+    $row.vSwitch = $pg.VirtualSwitch.Name
+    $row.Portgroup = $pg.Name
+    $row.VLAN = $pg.vLanID
+    $report += $row }
+ $report
