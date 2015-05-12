@@ -1,0 +1,27 @@
+<#
+.MYNGC_REPORT
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Folder[]]
+   $vParam,
+   [Parameter(Mandatory=$true)]
+   $Search_String
+);
+$caption = "Search host logs for string...                 "
+$message = "Which type of log would you like to search?"
+$choices = [System.Management.Automation.Host.ChoiceDescription[]] `
+@("vm&kernel", "v&pxa", "&hostd", "&messages", "vmk&summary", "vmk&warning")
+[int]$defaultChoice = 0
+$choiceRTN = $host.ui.PromptForChoice($caption,$message, $choices,$defaultChoice)
+switch($choiceRTN)
+{
+ 0    { $mylog = "vmkernel" }
+ 1    { $mylog = "vpxa" }
+ 2    { $mylog = "hostd" }
+ 3    { $mylog = "messages" }
+ 4    { $mylog = "vmksummary" }
+ 5    { $mylog = "vmkwarning" }
+}
+(Get-Log -VMHost (Get-VMHost -Location $vParam) $mylog).Entries | Where {$_ -like "*$Search_String*"}
