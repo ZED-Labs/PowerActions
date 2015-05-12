@@ -1,0 +1,40 @@
+<#
+.LABEL
+Get VM snapshots
+.DESCRIPTION
+List all VMs with snapshots.
+#>
+param
+(
+   [Parameter(Mandatory=$true)]
+   [VMware.VimAutomation.ViCore.Types.V1.Inventory.Folder[]]
+   $vParam
+);
+Write-host "You selected $vParam."
+$report = @()
+
+foreach ($snap in Get-VM -Location $vParam | Get-Snapshot)
+{
+  $snapevent = Get-VIEvent -Entity $snap.VM -Types Info -Finish $snap.Created -MaxSamples 1 | Where-Object {$_.FullFormattedMessage -imatch 'Task: Create virtual machine snapshot'}
+  if ($snapevent -ne $null)
+  {
+   $row= New-Object psobject
+   $row| Add-Member -MemberType Noteproperty "VM" -value $snap.vm
+   $row| Add-Member -MemberType Noteproperty "Snapshot" -Value $snap.name
+   $row| Add-Member -MemberType Noteproperty "SizeMB" -Value ([math]::Round($snap.SizeMB))
+   $row| Add-Member -MemberType Noteproperty "SizeGB" -Value ([math]::Round($snap.SizeGB))
+   $row| Add-Member -MemberType Noteproperty "Created" -Value $snap.Created.DateTime
+   $row| Add-Member -MemberType Noteproperty "InitiatedBy" -Value $snapevent.UserName
+   $report += $row
+  } else {
+   $row= New-Object psobject
+   $row| Add-Member -MemberType Noteproperty "VM" -value $snap.vm
+   $row| Add-Member -MemberType Noteproperty "Snapshot" -Value $snap.name
+   $row| Add-Member -MemberType Noteproperty "SizeMB" -Value ([math]::Round($snap.SizeMB))
+   $row| Add-Member -MemberType Noteproperty "SizeGB" -Value ([math]::Round($snap.SizeGB))
+   $row| Add-Member -MemberType Noteproperty "Created" -Value $snap.Created.DateTime
+   $row| Add-Member -MemberType Noteproperty "InitiatedBy" -Value "vCenter event not found."
+   $report += $row
+  }
+}
+$report
